@@ -1,0 +1,11 @@
+node_modules
+bot_sessions
+dist
+.env
+*.png
+*_sessions
+*.log
+baileys.log
+bot.qr.png
+core.class.log
+state.json

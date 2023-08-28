@@ -1,0 +1,29 @@
+{
+    "name": "whatsapp-pizzabot",
+    "version": "1.0.0",
+    "description": "Enhance your pizza ordering experience with PizzaBot, your virtual assistant for seamless dining at PizzaHouse.",
+    "main": "app.js",
+    "scripts": {
+        "pre-copy": "cd .. && npm run  copy.lib base-baileys-memory",
+        "start": "node app.js"
+    },
+    "keywords": [],
+    "dependencies": {
+        "@adiwajshing/baileys": "github:WhiskeySockets/Baileys",
+        "@adiwajshing/keyed-db": "^0.2.4",
+        "@bot-whatsapp/bot": "latest",
+        "@bot-whatsapp/cli": "latest",
+        "@bot-whatsapp/database": "latest",
+        "@bot-whatsapp/portal": "latest",
+        "@bot-whatsapp/provider": "^0.1.2",
+        "axios": "^1.3.4",
+        "dotenv": "^16.0.3",
+        "moment": "^2.29.4",
+        "nanoid": "^4.0.1",
+        "uuid": "^9.0.0",
+        "wa-sticker-formatter": "^4.4.4",
+        "xstate": "^4.38.1"
+    },
+    "author": "Gerardo Castillo",
+    "license": "MIT"
+}
