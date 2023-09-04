@@ -21,6 +21,8 @@ const createLeadMachine = (leadStore) =>
             maxOptionNumber: -1,
             quantity: 0,
             deals: [],
+            currentFeatureItems: [],
+            currentFeature: "",
           },
           flowDynamic: () => {},
         },
@@ -62,11 +64,15 @@ const createLeadMachine = (leadStore) =>
 
                     await flowDynamic([
                       {
-                        body: `Hello  ${name}! 😊👋.\nI'm PizzaBot 🍕🤖, your virtual assistant from PizzaHouse.\n\n🛎️How can I assist you today?\n├1️⃣ Discover Deals & Promotions\n├2️⃣ Explore Our Full Menu\n├3️⃣ Check Your Cart Summary\n└4️⃣ Connect with a Human`,
+                        // body: `Hola ${name}! 😊👋.\nSoy BurguerBot 🍔🤖, tu asistente virtual de BurguerMania.\n\n🛎️¿En qué puedo ayudarte hoy?\n├1️⃣ Descubrir el Especial de la Semana\n├2️⃣ Explorar Nuestro Menú Completo\n├3️⃣ Ver Resumen de Tu Carrito 🛒\n└4️⃣ Hablar con un Asesor`,
+                        body: `Hola ${name}! 😊👋.\nSoy BurgerBot 🍔🤖, Tu Asistente de Sabores.\n\n🛎️¿En qué puedo ayudarte hoy?\n├1️⃣ Especial de la Semana\n├2️⃣ Explorar Menú Completo\n├3️⃣ Revisar Tu Carrito 🛒\n└4️⃣ Contactar Servicio al Cliente`,
+                        // media:
+                        //   "https://drive.google.com/uc?export=download&id=1mX2y6jw0Fu5r_bbkU3Q1hW3d_lTG6Vag",
+                        //aqui va el media
                         media:
-                          "https://drive.google.com/uc?export=download&id=1rvEiJlrNMSSlTvy428dZIpuulASMtB4V",
+                          "https://drive.google.com/uc?export=download&id=1uWXl0HgfCF7KiFYDToDkygZVxwi3zF3B",
                       },
-                      "Respond with option number!",
+                      "¡Responde con el número de la opción!",
                     ]);
 
                     //there is no go back option
@@ -109,38 +115,43 @@ const createLeadMachine = (leadStore) =>
 
                     const { menu } = leadStore;
 
-                    let promptDeal = menu.deals.prompts[0].message;
+                    let promptDeal = menu.especial.prompts[0].message;
 
-                    const options = [
-                      "1️⃣",
-                      "2️⃣",
-                      "3️⃣",
-                      "4️⃣",
-                      "5️⃣",
-                      "6️⃣",
-                      "7️⃣",
-                      "8️⃣",
-                      "9️⃣",
-                    ];
+                    // cosnt addDealToCurrentSelection =
 
-                    const baseFeature = menu.deals.features[0]; //always at least one feature
-                    menu.deals[baseFeature].map((deal) => {
-                      if (deal.type.handle === "fixed-price") {
-                        promptDeal += `├${options.shift()} ${deal.title} $${
-                          deal.type.value
-                        }\n`;
-                      } else {
-                        promptDeal += `├${options.shift()} ${deal.title}\n`; //some other logic if not fixed-price
-                      }
-                      promptDeal += `│\t_${deal.description}_\n`;
-                    });
-                    promptDeal += `└${options.shift()} Go Back`;
+                    // const options = [
+                    //   "1️⃣",
+                    //   "2️⃣",
+                    //   "3️⃣",
+                    //   "4️⃣",
+                    //   "5️⃣",
+                    //   "6️⃣",
+                    //   "7️⃣",
+                    //   "8️⃣",
+                    //   "9️⃣",
+                    // ];
 
-                    flowDynamic([promptDeal, "Respond with option number!"]);
+                    // const baseFeature = menu.especial.features[0]; //always at least one feature
+                    // menu.especial[baseFeature].map((deal) => {
+                    //   promptDeal += `├${options.shift()} ${deal.title}\n`;
+                    // });
+                    // promptDeal += `└${options.shift()} Volver atrás`;
 
-                    //set go back option when needed
-                    context.flowControl.currentSelection.maxOptionNumber =
-                      menu.deals[baseFeature].length + 1;
+                    //😋 ¿Preparado para saborearla?
+                    flowDynamic([
+                      {
+                        body: promptDeal,
+                        // media:
+                        //   "https://drive.google.com/uc?export=download&id=1S7SYBjaQC88Gr7-Q_PMR03qRlC__1jVv",
+                        //aqui va el media
+                        media:
+                          "https://drive.google.com/uc?export=download&id=1ZFUd2zIl9A5bTMH0JPamRBxoEXRZYexg",
+                      },
+                      "¡Responde con el número de la opción!",
+                    ]);
+
+                    //go back option matches the max option number
+                    context.flowControl.currentSelection.maxOptionNumber = 2;
                   },
                   on: {
                     USER_INPUT: [
@@ -149,17 +160,28 @@ const createLeadMachine = (leadStore) =>
                         cond: "userInput_is_invalid",
                       },
                       {
-                        // actions: "assignToContext",
                         target: "prompt-explore-menu",
                         cond: "userInput_match_go_back",
                       },
                       {
                         actions: [
                           "assignToContext",
-                          "assignDealMenuCategoryToContext",
+                          // "assignDealMenuCategoryToContext",
+
+                          (context) => {
+                            context.flowControl.currentSelection = {
+                              menuCategory: "especial",
+                              features: [
+                                {
+                                  name: "variants",
+                                  value: "Beef Extravaganza",
+                                },
+                              ],
+                            };
+                          },
                         ],
                         target:
-                          "#chatbot.enabled.manage-menu.prompt-deal-item-selection",
+                          "#chatbot.enabled.manage-menu.prompt-quantity-selector",
                       },
                     ],
                   },
@@ -185,23 +207,25 @@ const createLeadMachine = (leadStore) =>
                     ];
 
                     let menuPrompt =
-                      "Embark on a Pizza-Fueled Gastronomic Journey of Flavors! 🍕🍰🥤\n\n🎉 Explore Our Menu \n";
+                      "¡Desata Tu Pasión por las Hamburguesas en BurguerMania! 🍔🔥🍔\n\n🎉 Elige tu Camino de Sabor:\n";
 
                     for (const category in menu) {
-                      if (category !== "deals") {
-                        let capitalizedCategory =
-                          category.charAt(0).toUpperCase() + category.slice(1);
-                        menuPrompt += `├${options.shift()} ${capitalizedCategory}\n`;
-                        // menuPrompt += `│\t${menu[category].title} ${menu[category].categoryIcon}\n`; //verbose
-                      }
+                      if (category === "especial") continue;
+                      let capitalizedCategory =
+                        category.charAt(0).toUpperCase() + category.slice(1);
+                      menuPrompt += `├${options.shift()} ${capitalizedCategory}\n`;
+                      // menuPrompt += `│\t${menu[category].title} ${menu[category].categoryIcon}\n`; //verbose
                     }
-                    menuPrompt += `└${options.shift()} Go Back`;
+                    menuPrompt += `└${options.shift()} Volver atrás`;
 
-                    flowDynamic([menuPrompt, "Respond with option number!"]);
+                    flowDynamic([
+                      menuPrompt,
+                      "¡Responde con el número de la opción!",
+                    ]);
 
-                    //set go back option when needed
+                    //go back option matches the max option number
                     context.flowControl.currentSelection.maxOptionNumber =
-                      Object.keys(menu).length; //exclude deals
+                      Object.keys(menu).length;
                   },
                   on: {
                     USER_INPUT: [
@@ -233,6 +257,9 @@ const createLeadMachine = (leadStore) =>
                           menuCategory,
                           features: prevChoice,
                           userInputCount,
+                          currentFeatureItems,
+                          currentFeature,
+                          maxOptionNumber,
                         },
                       },
                     } = context;
@@ -247,6 +274,8 @@ const createLeadMachine = (leadStore) =>
                       "7️⃣",
                       "8️⃣",
                       "9️⃣",
+                      "🔟",
+                      "🔙 11.",
                     ];
 
                     const { menu } = leadStore; //from global store
@@ -255,6 +284,7 @@ const createLeadMachine = (leadStore) =>
                     const firstFeature = selectedMenu.features[0]; //always at least one feature
 
                     //display a prompt message upon initial entry into this state
+
                     if (userInputCount === 0) {
                       let introPrompt = selectedMenu.prompts[0].message;
 
@@ -263,47 +293,47 @@ const createLeadMachine = (leadStore) =>
                         if (variant.price) {
                           introPrompt += `: $${variant.price.toFixed(2)}\n`;
                         } else {
-                          introPrompt += `\n`;
+                          if (variant.features !== undefined) {
+                            const nextFeat = variant.features[0];
+                            introPrompt += `: $${variant[
+                              nextFeat
+                            ][0].price.toFixed(2)} ▶️\n`;
+                          } else {
+                            introPrompt += `\n`;
+                          }
                         }
                       });
-                      introPrompt += `└${options.shift()} Go Back`;
+                      introPrompt += `└${options.shift()} Volver atrás`;
 
-                      flowDynamic([introPrompt, "Respond with option number!"]);
+                      flowDynamic([
+                        introPrompt,
+                        "¡Responde con el número de la opción!",
+                      ]);
 
                       //go back matches the max option number
                       context.flowControl.currentSelection.maxOptionNumber =
                         selectedMenu[firstFeature].length + 1;
 
+                      //set current feature items
+                      context.flowControl.currentSelection.currentFeatureItems =
+                        selectedMenu[firstFeature];
+                      context.flowControl.currentSelection.currentFeature =
+                        firstFeature;
+
                       return;
                     }
 
-                    //determine data to be saved to context
-                    let currentFeature = firstFeature; //default to first feature
-                    let selectedItem;
-
-                    if (prevChoice.length > 0) {
-                      selectedItem =
-                        selectedMenu[firstFeature][prevChoice[0].userInput - 1];
-
-                      for (let i = 0; i < prevChoice.length; i++) {
-                        currentFeature = selectedMenu.features[i + 1]; //skip first feature
-
-                        if (i === prevChoice.length - 1) {
-                          selectedItem =
-                            selectedItem[currentFeature][userInput - 1];
-                        } else {
-                          selectedItem =
-                            selectedItem[currentFeature][
-                              prevChoice[i + 1].userInput - 1
-                            ];
-                        }
-                      }
-                    } else {
-                      selectedItem = selectedMenu[firstFeature][userInput - 1];
+                    //when go back is selected
+                    if (userInput === maxOptionNumber) {
+                      context.flowControl.currentSelection.userInputCount = 0;
+                      currentFeatureItems = {};
+                      prevChoice = [];
+                      return;
                     }
 
-                    //save the previously chosen item to the context
+                    const selectedItem = currentFeatureItems[userInput - 1];
 
+                    //store the user's choice
                     prevChoice.push({
                       name: currentFeature,
                       value: selectedItem.feature,
@@ -315,6 +345,40 @@ const createLeadMachine = (leadStore) =>
 
                     //go to next state if no more features to be selected
                     if (!nextFeature) {
+                      if (selectedItem.features !== undefined) {
+                        const nextFeat = selectedItem.features[0];
+
+                        const featOptions = selectedItem[nextFeat];
+
+                        context.flowControl.currentSelection.currentFeatureItems =
+                          featOptions;
+                        context.flowControl.currentSelection.currentFeature =
+                          nextFeat;
+
+                        let introPrompt = selectedItem.prompts[0].message;
+                        featOptions.map((variant) => {
+                          introPrompt += `├${options.shift()} ${
+                            variant.feature
+                          }`;
+                          if (variant.price) {
+                            introPrompt += `: $${variant.price.toFixed(2)}\n`;
+                          } else {
+                            introPrompt += `\n`;
+                          }
+                        });
+                        introPrompt += `└${options.shift()} Volver atrás`;
+
+                        flowDynamic([
+                          introPrompt,
+                          "¡Responde con el número de la opción!",
+                        ]);
+
+                        //go back matches the max option number
+                        context.flowControl.currentSelection.maxOptionNumber =
+                          featOptions.length + 1;
+
+                        return;
+                      }
                       //This checks the condition in the "always" transition.
                       context.flowControl.currentSelection.didCompleteSelection = true;
                       return;
@@ -329,13 +393,22 @@ const createLeadMachine = (leadStore) =>
                         variant.price
                       }\n`;
                     });
-                    nextPrompt += `└${options.shift()} Go Back`;
+                    nextPrompt += `└${options.shift()} Volver atrás`;
 
-                    flowDynamic([nextPrompt, "Respond with option number!"]);
+                    flowDynamic([
+                      nextPrompt,
+                      "¡Responde con el número de la opción!",
+                    ]);
 
                     //go back matches the max option number
                     context.flowControl.currentSelection.maxOptionNumber =
                       selectedItem[nextFeature].length + 1;
+
+                    //set current feature items
+                    context.flowControl.currentSelection.currentFeatureItems =
+                      selectedItem[nextFeature];
+                    context.flowControl.currentSelection.currentFeature =
+                      nextFeature;
                   },
                   always: {
                     cond: "selection_is_completed",
@@ -378,7 +451,7 @@ const createLeadMachine = (leadStore) =>
 
                     const selectedMenu = menu[menuCategory];
 
-                    let nextPrompt = `👍 Great choice!`;
+                    let nextPrompt = `👍 ¡Excelente elección!`;
 
                     features.reduce((filteredMenu, feat) => {
                       const isLastFeat = feat === features[features.length - 1];
@@ -387,13 +460,12 @@ const createLeadMachine = (leadStore) =>
                       const featData = filteredMenu[feat.name].find(
                         (item) => item.feature === feat.value
                       );
-
                       nextPrompt += `\n${hierarchySymbol}✅ ${featData.feature} ${featData.featureIcon}`;
                       return featData;
                     }, selectedMenu);
 
                     // const nextLine = `🛒 How many of this would you like?`;
-                    const nextLine = `🛒 Choose your *quantity*`;
+                    const nextLine = `🛒 ¿Qué *cantidad* te gustaría agregar?`;
 
                     flowDynamic([nextPrompt, nextLine]);
 
@@ -423,25 +495,6 @@ const createLeadMachine = (leadStore) =>
 
                     const categoryIcon = menu[menuCategory].categoryIcon;
 
-                    let nextPrompt;
-                    nextPrompt = `Your current selection: 🔍\n${categoryIcon} *${quantity}* unit${
-                      quantity > 1 ? "s" : ""
-                    } of *${features[0].value}*:`;
-
-                    if (features[1]?.value) {
-                      nextPrompt += ` in *${features[1].value}*`;
-                    }
-
-                    deals?.forEach((deal, dealIndex) => {
-                      const hierarchySymbol =
-                        dealIndex !== deals.length - 1 ? "├" : "└";
-                      nextPrompt += `\n${hierarchySymbol}✅ ${deal.features[0].value}`;
-                      if (deal.features[1]?.value) {
-                        nextPrompt += ` ${deal.features[1].value}`;
-                      }
-                    });
-
-                    //item price
                     const selectedMenu = menu[menuCategory];
                     const selectedVariant = features.reduce(
                       (filteredMenu, feat) => {
@@ -453,8 +506,33 @@ const createLeadMachine = (leadStore) =>
                       selectedMenu
                     );
 
+                    const featureIcon = selectedVariant
+                      ? selectedVariant.featureIcon
+                      : categoryIcon;
+
+                    const itemLabel = features
+                      .map((feat) => feat.value)
+                      .join(" ");
+
+                    let nextPrompt;
+                    nextPrompt = `Tu selección actual: 🔍\n${featureIcon} *${quantity}* ${
+                      quantity > 1 ? "unidades" : "unidad"
+                    } de *${itemLabel}*`;
+
+                    deals?.forEach((deal, dealIndex) => {
+                      const hierarchySymbol =
+                        dealIndex !== deals.length - 1 ? "├" : "└";
+
+                      const dealLabel = deal.features
+                        .map((feat) => feat.value)
+                        .join(" ");
+
+                      nextPrompt += `\n${hierarchySymbol}✅ ${dealLabel}`;
+                    });
+
+                    //item price
                     let itemPrice = 0;
-                    if (deals.length > 0) {
+                    if (deals?.length > 0) {
                       if (selectedVariant.type?.handle === "fixed-price") {
                         itemPrice = selectedVariant.type.value;
                       } else {
@@ -464,13 +542,13 @@ const createLeadMachine = (leadStore) =>
                       itemPrice = selectedVariant.price * quantity;
                     }
 
-                    nextPrompt += `\n\n💰 *Amount:* $${itemPrice.toFixed(2)}`;
+                    nextPrompt += `\n\n💰 *Monto:* $${itemPrice.toFixed(2)}`;
 
-                    nextPrompt += `\n\n🛒 What's Next? 🛍️\n├1️⃣ Add to Cart\n└2️⃣ Let Me Tweak My Selection`;
+                    nextPrompt += `\n\n🛒 ¿Deseas continuar? 🛍️\n├1️⃣ Agregar al Carrito\n└2️⃣ Modificar mi Selección`;
 
                     context.flowControl.flowDynamic([
                       nextPrompt,
-                      "Respond with option number!",
+                      "¡Responde con el número de la opción!",
                     ]);
 
                     //no go back option in this state though
@@ -500,161 +578,80 @@ const createLeadMachine = (leadStore) =>
                     const {
                       flowControl: {
                         flowDynamic,
-                        userInput,
-                        currentSelection: {
-                          menuCategory,
-                          features: chosenDealVariant,
-                          deals: dealsToBeDefined,
-                        },
+                        currentSelection: { deals },
+                        // menuCategory,
                       },
+                      leadState: { cart },
                     } = context;
 
+                    context.flowControl.currentSelection.menuCategory =
+                      "especial";
+                    // console.log("🚩menuCategory (before): ", menuCategory);
+
                     const { menu } = leadStore;
+                    const selectedMenu = menu["especial"];
+                    // const baseFeature = selectedMenu.features[0]; //always at least one main feature
 
-                    const options = [
-                      "1️⃣",
-                      "2️⃣",
-                      "3️⃣",
-                      "4️⃣",
-                      "5️⃣",
-                      "6️⃣",
-                      "7️⃣",
-                      "8️⃣",
-                      "9️⃣",
-                    ];
+                    // features.push({
+                    //   name: "variants",
+                    //   value: "Beef Extravaganza",
+                    // });
 
-                    //only the first time this state is entered
-                    if (
-                      context.flowControl.currentSelection.isUserResponse ===
-                      false
-                    ) {
-                      // 1) Store the chosen deal in the context.
-                      const selectedMenu = menu[menuCategory];
-                      const baseFeature = selectedMenu.features[0];
-                      const selectedDeal =
-                        selectedMenu[baseFeature][userInput - 1];
-                      const dealData = selectedDeal.products;
+                    deals.push({
+                      name: "variants",
+                      value: "Beef Extravaganza",
+                    });
 
-                      chosenDealVariant.push({
-                        name: selectedMenu.features[0],
-                        value: selectedDeal.feature,
-                        userInput,
-                      });
+                    // const baseFeatureItem = selectedMenu[baseFeature].find(
+                    //   (item) => item.feature === features[0].value
+                    // );
 
-                      // 2) Create a buffer to store deals that need to be defined.
-                      let dealsBuffer = [];
+                    const selectedItem = deals.reduce((filteredMenu, feat) => {
+                      return filteredMenu[feat.name].find(
+                        (item) => item.feature === feat.value
+                      );
+                    }, selectedMenu);
 
-                      dealData.forEach((deal /* , dealIndex */) => {
-                        const dealMenu = menu[deal.menuCategory];
+                    cart.status = "active";
+                    cart.items.push({
+                      variantId: selectedItem.variantId,
+                      variant: deals,
+                      menuCategory:
+                        context.flowControl.currentSelection.menuCategory,
+                      title: selectedItem.title,
+                      // description: selectedItem.description,
+                      price: selectedItem.price,
+                      quantity: 1,
+                    });
+                    cart.total = cart.items.reduce(
+                      (total, item) => total + item.price * item.quantity,
+                      0
+                    );
 
-                        let newPreSelectionDeal = {
-                          // dealIndex,
-                          // variantId: deal.variantId,
-                          menuCategory: deal.menuCategory,
-                          features: [],
-                          // price: deal.price,
-                        };
+                    let nextPrompt = `👍 ¡Excelente elección!\n\n *¿Quieres agregar algo más para complementar tu comida?* 🥤🍟\n\n👉 *Bebidas:* Refrescos, Té, Agua Mineral, Jugos, Sodas.\n👉 *Extras*: Salsas (variedad), Papas Fritas, Cebolla Caramelizada, Champiñones Salteados, Huevo Frito , Tocineta.\n\n🚀 Escoge una opción:\n├1️⃣ Bebidas\n├2️⃣ Extras\n├3️⃣ Continuar\n└4️⃣ Volver atrás`;
 
-                        for (const feat of dealMenu.features) {
-                          if (deal[feat].length > 1) {
-                            newPreSelectionDeal.features.push({
-                              name: feat,
-                              value: undefined, //will be set later by the user
-                            });
-                          } else {
-                            newPreSelectionDeal.features.push({
-                              name: feat,
-                              value: deal[feat][0], //already set by the merchant
-                            });
-                          }
-                        }
+                    // features.reduce((filteredMenu, feat) => {
+                    //   const isLastFeat = feat === features[features.length - 1];
+                    //   const hierarchySymbol = isLastFeat ? "└" : "├";
 
-                        for (let i = 0; i < deal.quantity; i++) {
-                          dealsBuffer.push({
-                            ...newPreSelectionDeal,
-                            position: i,
-                          });
-                        }
-                      });
+                    //   const featData = filteredMenu[feat.name].find(
+                    //     (item) => item.feature === feat.value
+                    //   );
 
-                      //we need a deep copy because there are nested objects
-                      // const deep = structuredClone(dealsBuffer);
-                      const deepCopy = JSON.parse(JSON.stringify(dealsBuffer)); //simple deep copy
+                    //   nextPrompt += `\n${hierarchySymbol}✅ ${featData.feature} ${featData.featureIcon}`;
+                    //   return featData;
+                    // }, selectedMenu);
 
-                      dealsToBeDefined.push(...deepCopy);
-                    }
+                    // const nextLine = `🛒 How many of this would you like?`;
+                    // const nextLine = `🛒 ¿Qué *cantidad* te gustaría agregar?`;
 
-                    const ordinals = [
-                      "first",
-                      "second",
-                      "third",
-                      "fourth",
-                      "fifth",
-                      "sixth",
-                      "seventh",
-                      "eighth",
-                      "ninth",
-                      "tenth",
-                    ];
+                    flowDynamic([
+                      nextPrompt,
+                      "¡Responde con el número de la opción!",
+                    ]);
 
-                    // 3) Handle prompts or user responses based on dealsBuffer.
-                    let hasDealToDefine = false;
-                    for (const dealItem of dealsToBeDefined) {
-                      const dealCategory = dealItem.menuCategory;
-                      const dealMenu = menu[dealCategory];
-
-                      for (let i = 0; i < dealItem.features.length; i++) {
-                        const feat = dealItem.features[i];
-                        if (feat.value === undefined) {
-                          if (
-                            context.flowControl.currentSelection
-                              .isUserResponse === true
-                          ) {
-                            // store user response
-                            const userRes = dealMenu[feat.name][userInput - 1];
-                            dealItem.features[i].value = userRes.feature;
-                            context.flowControl.currentSelection.isUserResponse = false; //for the next prompt, if any
-                          } else {
-                            // next prompt
-                            nextPrompt = `🛒 Choose your *${
-                              ordinals[dealItem.position]
-                            } ${dealCategory.slice(0, -1)}* \n`;
-
-                            const variants = dealMenu[feat.name];
-                            variants.forEach((variant, index) => {
-                              const hierarchySymbol =
-                                index !== variants.length - 1 ? "├" : "└";
-
-                              nextPrompt += `${hierarchySymbol}${options.shift()} ${
-                                variant.feature
-                              }\n`;
-                            });
-
-                            flowDynamic([
-                              nextPrompt,
-                              "Respond with option number!",
-                            ]);
-
-                            //halt and await next user input
-                            context.flowControl.currentSelection.maxOptionNumber =
-                              variants.length;
-                            context.flowControl.currentSelection.isUserResponse = true;
-                            hasDealToDefine = true;
-                            break;
-                          }
-                        }
-                      }
-                      if (hasDealToDefine === true) {
-                        break;
-                      }
-                    }
-
-                    if (hasDealToDefine === true) {
-                      return;
-                    } else {
-                      context.flowControl.currentSelection.quantity = 1; //if many deals, likely different items in each.
-                      context.flowControl.currentSelection.didCompleteSelection = true;
-                    }
+                    //go back option matches the max option number
+                    context.flowControl.currentSelection.maxOptionNumber = 4;
                   },
                   always: {
                     cond: "selection_is_completed",
@@ -668,11 +665,44 @@ const createLeadMachine = (leadStore) =>
                         cond: "userInput_is_invalid",
                       },
                       {
-                        actions: ["assignToContext"],
-                        target:
-                          "#chatbot.enabled.manage-menu.prompt-deal-item-selection",
-                        internal: false,
+                        target: "prompt-explore-menu",
+                        cond: "userInput_match_go_back",
                       },
+                      {
+                        actions: [
+                          // "addToCart",
+                          // "resetCurrentSelectionExceptMenuCategory",
+                          (context) => {
+                            context.flowControl.currentSelection.menuCategory =
+                              "bebidas";
+                          },
+                        ],
+                        target: "prompt-menu-item-selection",
+                        cond: "userInput_is_1",
+                      },
+                      {
+                        actions: [
+                          // "addToCart",
+                          // "resetCurrentSelectionExceptMenuCategory",
+                          (context) => {
+                            context.flowControl.currentSelection.menuCategory =
+                              "extras";
+                          },
+                        ],
+                        target: "prompt-menu-item-selection",
+                        cond: "userInput_is_2",
+                      },
+                      {
+                        // actions: ["addToCart", "resetCurrentSelection"],
+                        target: "#chatbot.enabled.manage-cart.cart-summary",
+                        cond: "userInput_is_3",
+                      },
+                      // {
+                      //   actions: ["assignToContext"],
+                      //   target:
+                      //     "#chatbot.enabled.manage-menu.prompt-deal-item-selection",
+                      //   internal: false,
+                      // },
                     ],
                   },
                 },
@@ -685,11 +715,11 @@ const createLeadMachine = (leadStore) =>
 
                     flowDynamic([
                       {
-                        body: `Back to the Menu 🍕🔙\n\nExplore our delicious selection once again and make your choice!\n\n🛎️How can I assist you today?\n├1️⃣ Discover Deals & Promotions\n├2️⃣ Explore Our Full Menu\n├3️⃣ Check Your Cart Summary\n└4️⃣ Connect with a Human` /* ,
+                        body: `De vuelta al Menú 🍔🔙\n\nDescubre nuestra deliciosa variedad y ¡haz tu elección!\n\n🛎️¿En qué puedo ayudarte hoy?\n├1️⃣ Especial de la Semana\n├2️⃣ Explorar Menú Completo\n├3️⃣ Revisar Tu Carrito 🛒\n└4️⃣ Contactar Servicio al Cliente` /* ,
                             media:
                               "https://drive.google.com/uc?export=download&id=1rvEiJlrNMSSlTvy428dZIpuulASMtB4V", */,
                       },
-                      "Respond with option number!",
+                      "¡Responde con el número de la opción!",
                     ]);
 
                     //there is no go back option though
@@ -738,12 +768,11 @@ const createLeadMachine = (leadStore) =>
 
                     let nextPrompt;
                     if (cart.items.length === 0) {
-                      nextPrompt = `🛒 Your Cart is Currently Empty!\n\nNo worries, it's a perfect time to fill it with delicious choices. Explore our menu and craft your perfect order. 🍕🥤\n\nGet ready to enjoy a culinary delight!`;
+                      nextPrompt = `🛒 ¡Tu Carrito Está Actualmente Vacío!\n\nNo te preocupes, es el momento perfecto para llenarlo con deliciosas opciones. Explora nuestro menú y crea tu pedido perfecto. 🍔🥤\n\n¡Prepárate para saborear una delicia!`;
 
                       await flowDynamic([
                         nextPrompt,
-                        // "Respond anything to continue to the menu... 🍕",
-                        "Redirecting to the menu in a few seconds... 🍕",
+                        "Redirigiendo al menú en unos segundos... 🍔",
                       ]);
 
                       await typing(provider, ctx, 2000);
@@ -756,21 +785,63 @@ const createLeadMachine = (leadStore) =>
                       return;
                     }
 
-                    nextPrompt = `🎉 *Your Cart:* ${cart.items.length} Item${
+                    nextPrompt = `🛒 *Tu Carrito:* ¡${
+                      cart.items.length
+                    } Artículo${cart.items.length > 1 ? "s" : ""} listo${
                       cart.items.length > 1 ? "s" : ""
-                    } Ready to Go!`;
+                    }!`;
+
+                    const { menu } = leadStore;
                     cart.items?.forEach((item, index) => {
                       const isLastItem = index === cart.items.length - 1;
                       const hierarchySymbol = isLastItem ? "└" : "├";
-                      nextPrompt += `\n${hierarchySymbol}✅ ${item.title} (${item.quantity})`;
+
+                      let itemLabel;
+                      if (item.variant.length > 0) {
+                        itemLabel = item.variant
+                          .map((feat) => feat.value)
+                          .join(" ");
+                      } else {
+                        itemLabel = item.title;
+                      }
+
+                      //extract featureIcon from variant
+                      const selectedMenu = menu[item.menuCategory];
+                      const selectedVariant = item.variant?.reduce(
+                        (filteredMenu, feat) => {
+                          const featData = filteredMenu[feat.name].find(
+                            (item) => item.feature === feat.value
+                          );
+                          return featData;
+                        },
+                        selectedMenu
+                      );
+
+                      const featureIcon = selectedVariant
+                        ? selectedVariant.featureIcon
+                        : selectedMenu.categoryIcon;
+
+                      const baseFeat = item.variant[0];
+                      let extraLabel = ""; //to be more descriptive
+                      if (
+                        item.menuCategory === "extras" &&
+                        baseFeat.value !== "Salsa" //except for "Salsa" which is already descriptive
+                      ) {
+                        extraLabel = "Extra";
+                      }
+
+                      nextPrompt += `\n${hierarchySymbol}${featureIcon} ${itemLabel} ${extraLabel} (${item.quantity})`;
                     });
 
                     nextPrompt += `\n\n💰 *Subtotal:* $${cart.total.toFixed(
                       2
                     )}`;
-                    nextPrompt += `\n\n🛒 What would you like to do next? 🛍️\n├1️⃣ Proceed to Checkout\n├2️⃣ Edit My Choices\n└3️⃣ Continue Shopping`;
+                    nextPrompt += `\n\n🛍️ ¿Tu siguiente paso? \n├1️⃣ Ir a Pagar\n├2️⃣ Editar Mis Artículos\n└3️⃣ Seguir Comprando`;
 
-                    flowDynamic([nextPrompt, "Respond with option number!"]);
+                    flowDynamic([
+                      nextPrompt,
+                      "¡Responde con el número de la opción!",
+                    ]);
 
                     //no dynamic maximum options number
                     context.flowControl.currentSelection.maxOptionNumber = 3;
@@ -811,12 +882,14 @@ const createLeadMachine = (leadStore) =>
                     const menu = leadStore.menu;
 
                     let nextPrompt;
-                    nextPrompt = `📝 *Your Cart:* ${
-                      cart.items.length
-                    } Awesome Pick${cart.items.length > 1 ? "s" : ""}!`;
+                    // nextPrompt = `📝 *Tu Carrito:* ${cart.items.length} ${
+                    nextPrompt = `🛒 *Tu Carrito:* ${cart.items.length} ${
+                      cart.items.length > 1
+                        ? "Increíbles Elecciones"
+                        : "Increíble Elección"
+                    }!`;
 
                     cart.items?.forEach((item, index) => {
-                      const selectedMenu = menu[item.menuCategory];
                       const isLastItem = index === cart.items.length - 1;
                       let hierarchySymbol = isLastItem ? "└" : "├";
 
@@ -824,7 +897,41 @@ const createLeadMachine = (leadStore) =>
                         hierarchySymbol = "├";
                       }
 
-                      nextPrompt += `\n${hierarchySymbol}${selectedMenu.categoryIcon} ${item.title} (${item.quantity})`;
+                      let itemLabel;
+                      if (item.variant.length > 0) {
+                        itemLabel = item.variant
+                          .map((feat) => feat.value)
+                          .join(" ");
+                      } else {
+                        itemLabel = item.title;
+                      }
+
+                      //extract featureIcon from variant
+                      const selectedMenu = menu[item.menuCategory];
+                      const selectedVariant = item.variant?.reduce(
+                        (filteredMenu, feat) => {
+                          const featData = filteredMenu[feat.name].find(
+                            (item) => item.feature === feat.value
+                          );
+                          return featData;
+                        },
+                        selectedMenu
+                      );
+
+                      const featureIcon = selectedVariant
+                        ? selectedVariant.featureIcon
+                        : selectedMenu.categoryIcon;
+
+                      const baseFeat = item.variant[0];
+                      let extraLabel = ""; //to be more descriptive
+                      if (
+                        item.menuCategory === "extras" &&
+                        baseFeat.value !== "Salsa" //except for "Salsa" which is already descriptive
+                      ) {
+                        extraLabel = "Extra";
+                      }
+
+                      nextPrompt += `\n${hierarchySymbol}${featureIcon} ${itemLabel} ${extraLabel} (${item.quantity})`;
 
                       item.dealItems?.forEach((dealItem) => {
                         const dealSymbol = "│";
@@ -839,9 +946,12 @@ const createLeadMachine = (leadStore) =>
                     nextPrompt += `\n\n💰 *Subtotal:* $${cart.total.toFixed(
                       2
                     )}`;
-                    nextPrompt += `\n\n🛒 Pick an action\n├1️⃣ Start Fresh\n└2️⃣ Go Back`;
+                    nextPrompt += `\n\n🛍️ Escoge una Acción\n├1️⃣ Empezar de Nuevo\n└2️⃣ Volver atrás`;
 
-                    flowDynamic([nextPrompt, "Respond with option number!"]);
+                    flowDynamic([
+                      nextPrompt,
+                      "¡Responde con el número de la opción!",
+                    ]);
 
                     //no dynamic maximum options number
                     context.flowControl.currentSelection.maxOptionNumber = 2;
@@ -881,10 +991,10 @@ const createLeadMachine = (leadStore) =>
                       leadState: { name },
                     } = context;
 
-                    const checkoutPrompt = `👏 Great choice, ${name}.\n\nYou're almost there.\n\nHow would you like to get your delicious pizza?\n\n🚀 Let's get your order on its way!\n├1️⃣ Pick Up\n└2️⃣ Delivery`;
+                    const checkoutPrompt = `👏 Excelente, ${name}.\n\nYa casi terminas.\n\n🚀 ¿Cómo prefieres recibirlo?\n├1️⃣ Retirar\n└2️⃣ Delivery ($3)`;
                     flowDynamic([
                       checkoutPrompt,
-                      "Respond with option number!",
+                      "¡Responde con el número de la opción!",
                     ]);
 
                     //no dynamic maximum options number
@@ -916,15 +1026,21 @@ const createLeadMachine = (leadStore) =>
                       leadState: { name },
                     } = context;
 
-                    const deliveryPrompt = `🛵 Wonderful choice, ${name}! Delivery is a breeze.\n\nPlease provide us with your delivery address, including any special instructions if needed.\n\nJust type in your address, and we'll take care of the rest!`;
-                    const nextLine = `📍 *Address:*`;
+                    const deliveryPrompt = `🛵 ¡Genial ${name}! El delivery es muy sencillo.\n\nPor favor, proporciona tu dirección de entrega, incluyendo cualquier instrucción especial si es necesario.\n\n¡Solo escribe tu dirección y nosotros nos encargamos del resto!`;
+                    const nextLine = `📍 *Dirección:*`;
 
                     flowDynamic([deliveryPrompt, nextLine]);
                   },
                   on: {
                     USER_INPUT: [
                       {
-                        actions: "storeUserAddress",
+                        actions: [
+                          "storeUserAddress",
+                          (context) => {
+                            context.leadState.cart.checkout.deliveryMethod =
+                              "Delivery";
+                          },
+                        ],
                         target: "prompt-address-validation",
                       },
                     ],
@@ -935,11 +1051,11 @@ const createLeadMachine = (leadStore) =>
                     const { flowDynamic } = context.flowControl;
                     const { shippingAddress } = context.leadState.cart.checkout;
 
-                    const addressValidation = `📍 Here's the address you provided:\n\n${shippingAddress}\n\n🏠 Is this address correct?\n├1️⃣ Yes\n└2️⃣ No, let me try again`;
+                    const addressValidation = `📍 Esta es la información que proporcionaste:\n\n*${shippingAddress}*\n\n🏠 ¿Está correcta?\n├1️⃣ Si\n└2️⃣ No, déjame intentarlo de nuevo`;
 
                     flowDynamic([
                       addressValidation,
-                      "Respond with option number!",
+                      "¡Responde con el número de la opción!",
                     ]);
 
                     //no dynamic maximum options number
@@ -968,19 +1084,37 @@ const createLeadMachine = (leadStore) =>
                   onEntry: (context) => {
                     const {
                       flowControl: { flowDynamic },
-                      leadState: { name },
+                      leadState: { name, cart },
                     } = context;
+
+                    const { deliveryMethod } = context.leadState.cart.checkout;
+
+                    let deliveryFee = 0;
+                    if (deliveryMethod === "Delivery") {
+                      deliveryFee = 3;
+                    }
+
+                    //update total
+                    cart.total =
+                      cart.items.reduce(
+                        (total, item) => total + item.price * item.quantity,
+                        0
+                      ) + deliveryFee;
+
                     const { total } = context.leadState.cart;
 
-                    let paymentPrompt = `🌟 Just a bit further, ${name}! It's payment time:\n\n`;
+                    let paymentPrompt = `🌟 ¡Un pasito más, ${name}! Llegó el momento de pagar:\n\n`;
 
-                    paymentPrompt += `💰 *Total Amount:* $${total.toFixed(
+                    paymentPrompt += `💰 *Monto Total:* $${total.toFixed(
                       2
                     )}\n\n`;
 
-                    paymentPrompt += `💰 Choose your method:\n├1️⃣ Cash\n├2️⃣ Credit card\n├3️⃣ Debit card\n├4️⃣ PayPal\n└5️⃣ Go Back`;
+                    paymentPrompt += `💰 Elige el método de tu preferencia:\n├1️⃣ Efectivo\n├2️⃣ Transferencia bancaria\n├3️⃣ Pago Móvil\n├4️⃣ Zelle\n└5️⃣ Volver atrás`;
 
-                    flowDynamic([paymentPrompt, "Respond with option number!"]);
+                    flowDynamic([
+                      paymentPrompt,
+                      "¡Responde con el número de la opción!",
+                    ]);
 
                     //no dynamic maximum options number
                     context.flowControl.currentSelection.maxOptionNumber = 5;
@@ -1011,15 +1145,24 @@ const createLeadMachine = (leadStore) =>
                     } = context;
                     const { cart } = context.leadState;
 
-                    const total = cart.total.toFixed(2);
+                    let bcv = 32.42; //BCV rate of the day
+                    const subtotal = cart.total * bcv;
+                    // const total = subtotal.toFixed(2);
+                    const totalFormatted = subtotal.toLocaleString("es-ES", {
+                      minimumFractionDigits: 2,
+                    });
+                    const bcvFormatted = bcv.toLocaleString("es-ES", {
+                      minimumFractionDigits: 2,
+                    });
 
                     const paymentMethod = cart.checkout.paymentMethod;
 
                     let orderConfirmation;
                     if (paymentMethod === "Cash") {
-                      orderConfirmation = `🎉 Thank you, ${name}! 🍕🥳\n\nYour order has been placed successfully. To proceed with the payment, please prepare *$${total}* in cash. We look forward to serving you!\n\nIf you encounter any issues during the payment process or have questions, feel free to reach out to our customer support.\n\nThank you for choosing PizzaHouse for your meal. We appreciate your business!\n\nEnjoy your meal and thank you again! 🍕🎉`;
+                      orderConfirmation = `🎉 Gracias, ${name}! 🍔🥳\n\n✅ Tu pedido ha sido procesado exitosamente. Para proceder con el pago, por favor prepara *$${totalFormatted}* en efectivo. ¡Estamos emocionados por atenderte.!\n\nSi tienes algún problema durante el proceso de pago o tienes preguntas, no dudes en contactar a nuestro servicio al cliente.\n\nGracias por elegir BurguerMania. ¡Apreciamos tu preferencia!\n\n¡Disfruta de tu comida y gracias nuevamente! 🍔🎉`;
                     } else {
-                      orderConfirmation = `🎉 Thank you, ${name}! 🍕🥳\n\nYour order has been placed successfully. Please follow the secure payment link below to complete the transaction: 🔒💳\n\n*Payment Link:* https://www.example.com/payment?id=123456789\n\nOnce you complete the payment, we'll start preparing your order for delivery or pickup. We'll keep you updated on the status of your order.\n\nIf you encounter any issues during the payment process or have questions, feel free to reach out to our customer support.\n\nWe appreciate your choice to dine with PizzaHouse.\n\nEnjoy your meal and thank you once again! 🍕🎉`;
+                      // orderConfirmation = `🎉 Gracias, ${name}! 🍕🥳\n\nTu pedido ha sido procesado exitosamente. Completa la transacción de manera segura siguiendo el enlace de pago a continuación: 🔒💳\n\n*Enlace Seguro:* https://www.example.com/payment?id=123456789\n\nUna vez que hayas realizado el pago, nos pondremos manos a la obra para preparar tu pedido y hacer la entrega o tenerlo listo para que lo retires. Te mantendremos informado sobre el estado del pedido.\n\nSi tienes algún problema durante el proceso de pago o tienes preguntas, no dudes en contactar a nuestro servicio al cliente.\n\nGracias por elegir BurguerMania. ¡Apreciamos tu preferencia!\n\n¡Disfruta de tu comida y gracias nuevamente! 🍔🎉`;
+                      orderConfirmation = `🎉 Gracias, ${name}! 🍔🥳\n\n✅ Tu pedido ha sido procesado exitosamente. Completa el pago con esta información:\n\n📱 *Pago Móvil:*\n├🏦 Banco Provincial\n├📞 (0414) 123 45 67\n├🆔 C.I. V-12.345.678\n└💰 Bs ${totalFormatted} (BCV ${bcvFormatted})\n\n📌Envíanos la captura o el número de operación después de pagar.\n\n📌Al confirmar, nos ponemos a trabajar en tu pedido para entrega o retiro. Te mantendremos informado sobre el estado del pedido.\n\nSi tienes algún problema durante el proceso de pago o tienes preguntas, no dudes en contactarnos nuevamente.\n\nGracias por elegir BurguerMania 🍔🎉. ¡Apreciamos tu preferencia!`;
                     }
 
                     flowDynamic(orderConfirmation);
@@ -1063,7 +1206,7 @@ const createLeadMachine = (leadStore) =>
                   "DD/MM/YYYY HH:mm"
                 )}\n\nPlease reach out to provide support and address their needs. Thank you!`;
 
-                await provider.sendText(agentPhoneNumber, agentMessage);
+                // await provider.sendText(agentPhoneNumber, agentMessage);
 
                 await typing(provider, ctx, 1000);
 
@@ -1145,7 +1288,7 @@ const createLeadMachine = (leadStore) =>
         }),
         handleInvalidOption: (context) => {
           const { flowDynamic } = context.flowControl;
-          flowDynamic("❌ Invalid option. Please try again.");
+          flowDynamic("❌ Opción Inválida. Por favor intenta de nuevo.");
         },
         addToCart: (context) => {
           const {
@@ -1169,19 +1312,10 @@ const createLeadMachine = (leadStore) =>
             );
           }, selectedMenu);
 
-          let itemPrice;
-          if (selectedMenu.type === "deal") {
-            if (baseFeatureItem.type?.handle === "fixed-price") {
-              itemPrice = baseFeatureItem.type.value;
-            } else {
-              itemPrice = baseFeatureItem.type.value; //some other logic if not fixed-price
-            }
-          } else {
-            itemPrice = selectedItem.price;
-          }
+          let itemPrice = selectedItem.price;
 
           //Add variantId and price to deal items if applicable.
-          deals.forEach((deal) => {
+          deals?.forEach((deal) => {
             const dealMenu = menu[deal.menuCategory];
             const dealItem = deal.features.reduce((filteredMenu, feat) => {
               return filteredMenu[feat.name].find(
@@ -1192,18 +1326,28 @@ const createLeadMachine = (leadStore) =>
             deal.price = dealItem.price;
           });
 
-          //add item to cart
-          cart.status = "active";
-          cart.items.push({
-            variantId: selectedItem.variantId,
-            variant: features,
-            menuCategory,
-            title: baseFeatureItem.title,
-            description: baseFeatureItem.description,
-            price: itemPrice,
-            quantity,
-            ...(deals.length > 0 && { dealItems: deals }), //only add dealItems property if it exists
-          });
+          const itemInCart = cart.items.find(
+            (item) => item.variantId === selectedItem.variantId
+          );
+
+          if (itemInCart) {
+            //update the quantity of an item already in the cart
+            itemInCart.quantity += quantity;
+          } else {
+            //add item to cart
+            cart.status = "active";
+            cart.items.push({
+              variantId: selectedItem.variantId,
+              variant: features,
+              menuCategory,
+              title: baseFeatureItem.title,
+              description: baseFeatureItem.description,
+              price: itemPrice,
+              quantity,
+              ...(deals?.length > 0 && { dealItems: deals }), //only add dealItems property if it exists
+            });
+          }
+          //update total
           cart.total = cart.items.reduce(
             (total, item) => total + item.price * item.quantity,
             0
@@ -1226,6 +1370,21 @@ const createLeadMachine = (leadStore) =>
               ...context.flowControl.currentSelection,
               userInputCount:
                 context.flowControl.currentSelection.userInputCount + 1,
+            },
+          }),
+        }),
+        resetCurrentSelectionExceptMenuCategory: assign({
+          flowControl: (context) => ({
+            ...context.flowControl,
+            userInput: -1,
+            currentSelection: {
+              features: [],
+              userInputCount: 0,
+              isUserResponse: false,
+              didCompleteSelection: false,
+              maxOptionNumber: 0,
+              quantity: 0,
+              deals: [],
             },
           }),
         }),
@@ -1278,7 +1437,7 @@ const createLeadMachine = (leadStore) =>
             ...context.flowControl,
             currentSelection: {
               ...context.flowControl.currentSelection,
-              menuCategory: "deals",
+              menuCategory: "especial",
             },
           }),
         }),
@@ -1289,12 +1448,12 @@ const createLeadMachine = (leadStore) =>
               ...context.flowControl.currentSelection,
               menuCategory:
                 parseInt(event.userInput) === 1
-                  ? "sides"
+                  ? "entradas"
                   : parseInt(event.userInput) === 2
-                  ? "pizzas"
+                  ? "hamburguesas"
                   : parseInt(event.userInput) === 3
-                  ? "desserts"
-                  : "drinks",
+                  ? "bebidas"
+                  : "extras",
             },
           }),
         }),
